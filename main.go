@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"leafeon/migrator"
 	"os"
+
+	"github.com/dwakel/leafeon/migrator"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
