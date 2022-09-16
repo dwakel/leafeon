@@ -20,6 +20,6 @@ Still a work in progress
 Replace -connstr with your connection string and -src with the path to you directory containing migrations files
 
 ##### Naming conventions
-Up migrations should be named {filename}.up.sql
-rollback migrations should be named {filename}.down.sql
+-Up migrations should be named {filename}.up.sql
+-Rollback migrations should be named {filename}.down.sql
 
