@@ -31,19 +31,23 @@ func main() {
 
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 	migrate := migrator.New(database, *argsPath)
 	if migrationType == "up" {
 		migErr := migrate.Up()
 		if migErr != nil {
 			fmt.Println(migErr)
+			return
 		}
 	} else if migrationType == "down" {
 		migErr := migrate.Up()
 		if migErr != nil {
 			fmt.Println(migErr)
+			return
 		}
 	} else {
 		fmt.Println("Invalid command line args: ", migrationType)
+		return 
 	}
 }
