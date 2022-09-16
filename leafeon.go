@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -11,17 +12,27 @@ import (
 )
 
 func main() {
-	migrationType := os.Args[0]
-	argsConnString := os.Args[2]
-	argsPath := os.Args[1]
+	migrationType := os.Args[1]
 
-	dsn := fmt.Sprintf(argsConnString)
+	argsConnString := flag.String("connstr", "", "provide relevant connection string to establish connection to PostgreSQL database")
+	argsPath := flag.String("src", "", "provide a path to source directory to peform migrations from")
+
+	if *argsConnString == "" {
+		fmt.Println("Please provide relevant connection string: -connstr=")
+		return
+	}
+	if *argsPath == "" {
+		fmt.Println("Please provide directory for migrations: -src=")
+		return
+	}
+
+	dsn := fmt.Sprintf(*argsConnString)
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		fmt.Println(err)
 	}
-	migrate := migrator.New(database, argsPath)
+	migrate := migrator.New(database, *argsPath)
 	if migrationType == "up" {
 		migErr := migrate.Up()
 		if migErr != nil {
