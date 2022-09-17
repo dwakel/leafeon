@@ -35,18 +35,15 @@ func (m *Migrator) Down() error {
 }
 
 func migrate(m *Migrator, mType string) error {
-	var cd string
-	if m.path == "" {
+	var cd string = m.path
+	if cd == "" {
 		cd = "./migrations"
-	} else {
-		cd = m.path
 	}
 
 	files, err := ioutil.ReadDir(cd)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Migration failed: %v", err.Error()))
 	}
-
 	for _, file := range files {
 		ext, err := getDoubleExt(file.Name())
 		if err != nil {
@@ -56,7 +53,6 @@ func migrate(m *Migrator, mType string) error {
 			continue
 		}
 		fmt.Println(file.Name())
-		//fmt.Println(ext)
 		data, err := ioutil.ReadFile(cd + "/" + file.Name())
 		if err != nil {
 			fmt.Println()
@@ -69,6 +65,7 @@ func migrate(m *Migrator, mType string) error {
 		}
 		fmt.Println(" Done!")
 	}
+	fmt.Println(" Executed all migrations!")
 	return nil
 }
 

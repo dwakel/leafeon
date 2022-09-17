@@ -12,15 +12,11 @@ import (
 )
 
 func main() {
+	defer catchException()
 	migrationType := os.Args[3]
-
 	argsConnString := flag.String("connstr", "", "provide relevant connection string to establish connection to PostgreSQL database")
 	argsPath := flag.String("src", "", "provide a path to source directory to peform migrations from")
 	flag.Parse()
-	fmt.Println(argsConnString)
-	fmt.Println(*argsConnString)
-	fmt.Println(argsPath)
-	fmt.Println(*argsPath)
 	if *argsConnString == "" {
 		fmt.Println("Please provide relevant connection string: -connstr=")
 		return
@@ -29,15 +25,16 @@ func main() {
 		fmt.Println("Please provide directory for migrations: -src=")
 		return
 	}
-
-	dsn := fmt.Sprintf(*argsConnString)
-	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
+	database, err := gorm.Open(postgres.Open(fmt.Sprintf(*argsConnString)), &gorm.Config{})
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	migrate := migrator.New(database, *argsPath)
+	runMigration(migrationType, migrate)
+}
+
+func runMigration(migrationType string, migrate *migrator.Migrator) {
 	if migrationType == "up" {
 		migErr := migrate.Up()
 		if migErr != nil {
@@ -53,5 +50,11 @@ func main() {
 	} else {
 		fmt.Println("Invalid command line args: ", migrationType)
 		return
+	}
+}
+
+func catchException() {
+	if ex := recover(); ex != nil {
+		fmt.Println("Unexpected error occured.'")
 	}
 }
