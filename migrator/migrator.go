@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 
 	"gorm.io/gorm"
@@ -42,7 +43,7 @@ func (m *Migrator) Down() error {
 func migrate(m *Migrator, mType string) error {
 	var cd string = m.path
 	if cd == "" {
-		cd = "./migrations"
+		cd = "migrations"
 	}
 	files, err := ioutil.ReadDir(cd)
 	if err != nil {
@@ -57,7 +58,7 @@ func migrate(m *Migrator, mType string) error {
 			continue
 		}
 		fmt.Println(file.Name())
-		data, err := ioutil.ReadFile(cd + "/" + file.Name())
+		data, err := ioutil.ReadFile(filepath.Join(cd, file.Name()))
 		if err != nil {
 			fmt.Println()
 			return errors.New(fmt.Sprintf("Migration failed: %v", err.Error()))
