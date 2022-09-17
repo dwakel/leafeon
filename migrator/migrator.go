@@ -14,7 +14,12 @@ type Migrator struct {
 	path     string
 }
 
-func New(database *gorm.DB, path string) *Migrator {
+type Migrators interface {
+	Up() error
+	Down() error
+}
+
+func New(database *gorm.DB, path string) Migrators {
 	return &Migrator{database, path}
 }
 
@@ -39,7 +44,6 @@ func migrate(m *Migrator, mType string) error {
 	if cd == "" {
 		cd = "./migrations"
 	}
-
 	files, err := ioutil.ReadDir(cd)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Migration failed: %v", err.Error()))

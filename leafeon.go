@@ -34,22 +34,19 @@ func main() {
 	runMigration(migrationType, migrate)
 }
 
-func runMigration(migrationType string, migrate *migrator.Migrator) {
+func runMigration(migrationType string, migrate migrator.Migrators) {
 	if migrationType == "up" {
 		migErr := migrate.Up()
 		if migErr != nil {
 			fmt.Println(migErr)
-			return
 		}
 	} else if migrationType == "down" {
 		migErr := migrate.Up()
 		if migErr != nil {
 			fmt.Println(migErr)
-			return
 		}
 	} else {
 		fmt.Println("Invalid command line args: ", migrationType)
-		return
 	}
 }
 
