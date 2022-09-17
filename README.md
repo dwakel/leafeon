@@ -14,9 +14,13 @@ Still a work in progress
 
 -Can also use with terminal to run migrations
 
-``` Run sample
-    go run leafeon.go up -connstr="host=localhost port=5432 user=postgres password=dbpassword dbname=dbname sslmode=disable" -src="./migrations"
+``` Run sample Migrate
+    go run leafeon.go -connstr="host=localhost port=5432 user=postgres password=dbpassword dbname=dbname sslmode=disable" -src="./migrations" up
 ```
+``` Run sample Rollback Migrations
+    go run leafeon.go -connstr="host=localhost port=5432 user=postgres password=dbpassword dbname=dbname sslmode=disable" -src="./migrations" down
+```
+
 Replace -connstr with your connection string and -src with the path to you directory containing migrations files
 
 ##### Naming conventions

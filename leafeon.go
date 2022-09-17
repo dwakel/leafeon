@@ -12,11 +12,15 @@ import (
 )
 
 func main() {
-	migrationType := os.Args[1]
+	migrationType := os.Args[3]
 
 	argsConnString := flag.String("connstr", "", "provide relevant connection string to establish connection to PostgreSQL database")
 	argsPath := flag.String("src", "", "provide a path to source directory to peform migrations from")
-
+	flag.Parse()
+	fmt.Println(argsConnString)
+	fmt.Println(*argsConnString)
+	fmt.Println(argsPath)
+	fmt.Println(*argsPath)
 	if *argsConnString == "" {
 		fmt.Println("Please provide relevant connection string: -connstr=")
 		return
@@ -48,6 +52,6 @@ func main() {
 		}
 	} else {
 		fmt.Println("Invalid command line args: ", migrationType)
-		return 
+		return
 	}
 }
