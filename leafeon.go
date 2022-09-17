@@ -41,7 +41,7 @@ func runMigration(migrationType string, migrate migrator.Migrators) {
 			fmt.Println(migErr)
 		}
 	} else if migrationType == "down" {
-		migErr := migrate.Up()
+		migErr := migrate.Down()
 		if migErr != nil {
 			fmt.Println(migErr)
 		}
