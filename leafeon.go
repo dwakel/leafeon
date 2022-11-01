@@ -32,6 +32,7 @@ func main() {
 	}
 	migrate := migrator.New(database, *argsPath)
 	runMigration(migrationType, migrate)
+	
 }
 
 func runMigration(migrationType string, migrate migrator.Migrators) {

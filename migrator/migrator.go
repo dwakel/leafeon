@@ -1,11 +1,13 @@
 package migrator
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -14,6 +16,18 @@ type Migrator struct {
 	database *gorm.DB
 	path     string
 }
+
+type Migration struct {
+	Migration string    `pg:"migration"`
+	CreatedAt time.Time `pg:"created_at"`
+}
+
+const track = "_migrations"
+
+const trackSchema = `CREATE TABLE IF NOT EXISTS public._migrations (
+    migration text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);`
 
 type Migrators interface {
 	Up() error
@@ -58,17 +72,55 @@ func migrate(m *Migrator, mType string) error {
 			continue
 		}
 		fmt.Println(file.Name())
-		data, err := ioutil.ReadFile(filepath.Join(cd, file.Name()))
-		if err != nil {
-			fmt.Println()
-			return errors.New(fmt.Sprintf("Migration failed: %v", err.Error()))
+
+		//Check if Migration was already run
+		m.database.Exec(trackSchema)
+		var record Migration
+		upFName, _ := getWithoutDoubleExt(file.Name())
+		raw := "SELECT * FROM public._migrations WHERE migration = @name"
+		_ = m.database.Raw(raw, sql.Named("name", upFName+".up.sql")).Scan(&record).Error
+		if mType == "up" {
+			if record.Migration != file.Name() {
+				data, err := ioutil.ReadFile(filepath.Join(cd, file.Name()))
+				if err != nil {
+					fmt.Println()
+					return errors.New(fmt.Sprintf("Migration failed: %v", err.Error()))
+				}
+				err = m.database.Exec(string(data)).Error
+				if err != nil {
+					fmt.Println()
+					return errors.New(fmt.Sprintf("Migration failed: %v.\n Error: %v", file.Name(), err.Error()))
+				}
+				_ = m.database.Exec(fmt.Sprintf("INSERT INTO public._migrations (migration) VALUES ('%v')", file.Name()))
+				fmt.Println(" Done!")
+			} else if err == nil {
+				fmt.Println(" Skipped!")
+			} else {
+				return errors.New(fmt.Sprintf("Migration failed: %v", err.Error()))
+			}
 		}
-		err = m.database.Exec(string(data)).Error
-		if err != nil {
-			fmt.Println()
-			return errors.New(fmt.Sprintf("Migration failed: %v.\n Error: %v", file.Name(), err.Error()))
+		if mType == "down" {
+			if record.Migration != upFName+".up.sql" {
+				fmt.Println(" Skipped!")
+			} else if err == nil && record.Migration == upFName+".up.sql" {
+				data, err := ioutil.ReadFile(filepath.Join(cd, file.Name()))
+				if err != nil {
+					fmt.Println()
+					return errors.New(fmt.Sprintf("Migration failed: %v", err.Error()))
+				}
+				err = m.database.Exec(string(data)).Error
+				if err != nil {
+					fmt.Println()
+					return errors.New(fmt.Sprintf("Migration failed: %v.\n Error: %v", file.Name(), err.Error()))
+				}
+				upName, _ := getWithoutDoubleExt(file.Name())
+				_ = m.database.Exec(fmt.Sprintf("DELETE FROM public._migrations WHERE migration = '%v'", upName+".up.sql"))
+				fmt.Println(" Done!")
+
+			} else {
+				return errors.New(fmt.Sprintf("Migration failed: %v", err.Error()))
+			}
 		}
-		fmt.Println(" Done!")
 	}
 	fmt.Println(" Executed all migrations!")
 	return nil
@@ -80,4 +132,12 @@ func getDoubleExt(path string) (string, error) {
 		return "", errors.New("Invalid File")
 	}
 	return strings.Join(arr[len(arr)-2:], "."), nil
+}
+
+func getWithoutDoubleExt(path string) (string, error) {
+	arr := strings.Split(path, ".")
+	if len(arr) <= 2 {
+		return "", errors.New("Invalid File")
+	}
+	return strings.Join(arr[:len(arr)-2], "."), nil
 }
